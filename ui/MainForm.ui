@@ -247,7 +247,7 @@
   <widget class="QPushButton" name="buttonOpenTemplateDir">
    <property name="geometry">
     <rect>
-     <x>120</x>
+     <x>110</x>
      <y>60</y>
      <width>110</width>
      <height>40</height>
@@ -260,7 +260,7 @@
   <widget class="QPushButton" name="buttonImportTemplate">
    <property name="geometry">
     <rect>
-     <x>240</x>
+     <x>220</x>
      <y>60</y>
      <width>110</width>
      <height>40</height>
@@ -278,6 +278,19 @@
      <width>256</width>
      <height>181</height>
     </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="buttonCustomTemplate">
+   <property name="geometry">
+    <rect>
+     <x>330</x>
+     <y>60</y>
+     <width>110</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>编辑自定义模板</string>
    </property>
   </widget>
  </widget>
