@@ -25,6 +25,10 @@
   <property name="windowTitle">
    <string>别在这立法典——发病作文一键生成2.0 by ikcye</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>icon.png</normaloff>icon.png</iconset>
+  </property>
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
@@ -76,7 +80,7 @@
     <rect>
      <x>460</x>
      <y>10</y>
-     <width>141</width>
+     <width>261</width>
      <height>16</height>
     </rect>
    </property>
@@ -89,7 +93,7 @@
     <rect>
      <x>460</x>
      <y>30</y>
-     <width>161</width>
+     <width>261</width>
      <height>16</height>
     </rect>
    </property>
@@ -102,7 +106,7 @@
     <rect>
      <x>460</x>
      <y>230</y>
-     <width>151</width>
+     <width>251</width>
      <height>16</height>
     </rect>
    </property>
@@ -125,7 +129,7 @@
     <rect>
      <x>460</x>
      <y>280</y>
-     <width>131</width>
+     <width>261</width>
      <height>16</height>
     </rect>
    </property>
@@ -151,8 +155,8 @@
     <rect>
      <x>460</x>
      <y>320</y>
-     <width>54</width>
-     <height>12</height>
+     <width>261</width>
+     <height>16</height>
     </rect>
    </property>
    <property name="text">
@@ -291,6 +295,38 @@
    </property>
    <property name="text">
     <string>编辑自定义模板</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="buttonEggs">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>450</y>
+     <width>131</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>已发现彩蛋: 0</string>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>icon.png</normaloff>icon.png</iconset>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>32</width>
+     <height>32</height>
+    </size>
+   </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
    </property>
   </widget>
  </widget>
