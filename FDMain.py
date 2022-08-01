@@ -7,7 +7,7 @@ import pyperclip
 import requests
 import hashlib
 
-from PySide2.QtWidgets import QApplication, QMessageBox, QFileDialog, QMainWindow
+from PySide2.QtWidgets import QApplication, QMessageBox, QFileDialog, QMainWindow, QPushButton, QDialogButtonBox
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtGui import QIcon
 
@@ -38,7 +38,8 @@ class FDMain:
         try:
             self.ui = QUiLoader().load('ui\\MainForm.ui')
         except RuntimeError:
-            QMessageBox.critical(QMainWindow(), "致命错误", "读取ui文件ui\\MainForm.ui失败，该文件可能不存在或已损坏，程序无法运行")
+            QMessageBox.critical(QMainWindow(), "致命错误",
+                                 "读取ui文件ui\\MainForm.ui失败，该文件可能不存在或已损坏，程序无法运行")
             sys.exit(1)
 
         # 设置窗口图标
@@ -63,10 +64,11 @@ class FDMain:
         self.ui.buttonReplace.clicked.connect(self.replaceContext)
         self.ui.buttonCopy.clicked.connect(self.copyResult)
         self.ui.buttonQuit.clicked.connect(self.quitProgram)
-        self.ui.buttonOpenTemplateDir.clicked.connect(self.openDir)
-        self.ui.buttonImportTemplate.clicked.connect(self.importTemplate)
-        self.ui.buttonCustomTemplate.clicked.connect(self.customTemplate)
+        # self.ui.buttonOpenTemplateDir.clicked.connect(self.openDir)
+        # self.ui.buttonImportTemplate.clicked.connect(self.importTemplate)
+        # self.ui.buttonCustomTemplate.clicked.connect(self.customTemplate)
         self.ui.buttonEggs.clicked.connect(self.showEggs)
+        self.ui.buttonMenu.clicked.connect(self.openMenu)
 
         # 绑定下模板选择框事件
         self.ui.comboBox.currentIndexChanged.connect(self.showTemplate)
@@ -100,6 +102,10 @@ class FDMain:
 
         # 将调试信息输出
         self.ui.textDebug.append(output_message)
+
+    def openMenu(self):
+        self.debug("已打开功能菜单", type='success')
+        fdMenu.ui.show()
 
     def checkUpdate(self):
 
@@ -174,6 +180,8 @@ class FDMain:
 
         else:
             self.debug("当前已经是最新版本", type='success')
+            if self.initialized:
+                QMessageBox.information(self.ui, "检查更新完成", "当前已经是最新版本: " + current_version)
 
     def syncTemplates(self):
         # 同步计数
@@ -214,8 +222,7 @@ class FDMain:
                 self.debug("发现新模板: {}<br>大小: {} Bytes, 已弹窗询问".format(name, file_size))
 
                 # 弹窗确认是否下载
-                ret = QMessageBox.question(self.ui, "下载模板确认", "是否下载新模板{}.json?"
-                                                              "\n模板大小: {}Bytes ({}MB)"
+                ret = QMessageBox.question(self.ui, "下载模板确认", "是否下载新模板{}.json?\n模板大小: {}Bytes ({}MB)"
                                            .format(name,
                                                    file_size,
                                                    file_size / 1000000))
@@ -265,12 +272,15 @@ class FDMain:
                    "\n其中{}个模板已是最新"
                    "\n{}个模板有变动"
                    "\n{}个模板在本地不存在"
-                   "\n本次同步共下载了{}个模板".format(cnt_found,
-                                            cnt_existed,
-                                            cnt_changed,
-                                            cnt_new,
-                                            cnt_downloaded),
+                   "\n本次同步共下载了{}个模板".format(cnt_found, cnt_existed, cnt_changed, cnt_new, cnt_downloaded),
                    type='success')
+
+        QMessageBox.information(self.ui, "模板同步完成",
+                                "在云端共发现了{}个模板"
+                                "\n其中{}个模板已是最新"
+                                "\n{}个模板有变动"
+                                "\n{}个模板在本地不存在"
+                                "\n本次同步共下载了{}个模板".format(cnt_found, cnt_existed, cnt_changed, cnt_new, cnt_downloaded))
 
     def downloadTemplate(self, url, name) -> bool:
         self.debug("开始从{}下载模板".format(url))
@@ -332,10 +342,14 @@ class FDMain:
 
                         # 解码失败异常：一般是内容为空或者不合法
                         except json.decoder.JSONDecodeError:
-                            self.debug("已损坏的模板文件：{0}, 模板文件内容为空或不合法, 跳过当前模板文件".format(display_name), type='error')
+                            self.debug(
+                                "已损坏的模板文件：{0}, 模板文件内容为空或不合法, 跳过当前模板文件".format(display_name),
+                                type='error')
                             continue
                         except UnicodeDecodeError:
-                            self.debug("已损坏的模板文件：{0}, 模板文件编码格式有误, 跳过当前模板文件".format(display_name), type='error')
+                            self.debug(
+                                "已损坏的模板文件：{0}, 模板文件编码格式有误, 跳过当前模板文件".format(display_name),
+                                type='error')
                             continue
 
                         # 将键全部转换为小写，避免大小写混淆
@@ -361,8 +375,9 @@ class FDMain:
 
                         # 检测是否已经添加了相同的模板
                         elif hash_value in self.templates_hash.keys():
-                            self.debug("已经载入相同的模板文件: {0}, 跳过当前模板文件".format(self.templates_hash.get(hash_value))
-                                       , type='warn')
+                            self.debug("已经载入相同的模板文件: {0}, 跳过当前模板文件".format(
+                                self.templates_hash.get(hash_value))
+                                , type='warn')
                             continue
 
                         # 将模板添加到模板列表和模板列表框中
@@ -374,7 +389,8 @@ class FDMain:
 
                 # 文件拓展名不为.json
                 else:
-                    self.debug("不支持的文件类型(目前仅支持.json格式)：{0}, 跳过当前模板文件".format(display_name), type='error')
+                    self.debug("不支持的文件类型(目前仅支持.json格式)：{0}, 跳过当前模板文件".format(display_name),
+                               type='error')
 
         self.ui.comboBox.setCurrentIndex(-1)
         self.debug("模板载入完成,共载入{0}个模板文件".format(len(self.templates)), type='success')
@@ -390,9 +406,9 @@ class FDMain:
 
         # 检测配置文件版本是否符合
         if not config_file.get('version') in [current_version, '*', 'all']:
-            self.debug("配置文件版本不符或格式错误，跳过本次解析<br>当前版本: {}<br>配置文件版本: {}".format(current_version,
-                                                                               config_file.get('version')),
-                       type='error')
+            self.debug(
+                "配置文件版本不符或格式错误，跳过本次解析<br>当前版本: {}<br>配置文件版本: {}".format(current_version, config_file.get('version')),
+                type='error')
             return
 
         # 可用配置项
@@ -413,22 +429,21 @@ class FDMain:
 
                     # 若重复添加相同的配置项
                     if self.configs.get(key) == config_file.get(key):
-                        self.debug("已存在完全相同的配置项: {}, 配置项值为{}, 跳过本次应用配置项值".format(key,
-                                                                                 self.configs.get(key)), type='warn')
+                        self.debug("已存在完全相同的配置项: {}, 配置项值为{}, 跳过本次应用配置项值".format(key, self.configs.get(key)),
+                                   type='warn')
                         continue
 
-                    self.debug("已存在的配置项: {}<br>原配置项值: {}<br>新配置项值: {}, 已弹窗询问".format(key,
-                                                                                     self.configs.get(key),
-                                                                                     config_file.get(key)), type='warn')
+                    self.debug("已存在的配置项: {}"
+                               "<br>原配置项值: {}"
+                               "<br>新配置项值: {}, 已弹窗询问".format(key, self.configs.get(key), config_file.get(key)), type='warn')
 
                     # 弹窗询问处理方法
                     msgbox = QMessageBox()
                     msgbox.setWindowTitle("重复的配置项")
                     msgbox.setText("你要添加的配置项已存在")
                     msgbox.setInformativeText("你想要覆盖原本的配置项值吗？")
-                    msgbox.setDetailedText("已存在的配置项: {}\n原配置项值: {}\n新配置项值: {}".format(key,
-                                                                                      self.configs.get(key),
-                                                                                      config_file.get(key)))
+                    msgbox.setDetailedText(
+                        "已存在的配置项: {}\n原配置项值: {}\n新配置项值: {}".format(key, self.configs.get(key), config_file.get(key)))
                     msgbox.setIcon(QMessageBox.Question)
                     msgbox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
                     msgbox.setDefaultButton(QMessageBox.Yes)
@@ -541,14 +556,15 @@ class FDMain:
                 and self.ui.lineCustomKeyword.text() == "Show":
             self.ui.textResult.clear()
             self.ui.lineCustomKeyword.clear()
-            QMessageBox.information(self.ui, "关于", "DontFDHere {} by ikcye aka pitrick"
-                                                   "\n别在这立法典，你又不是汉谟拉比".format(current_version))
+            QMessageBox.about(self.ui, "关于",
+                              "DontFDHere {} by ikcye (Github@Pitrick3141)\n别在这立法典，你又不是汉谟拉比".format(current_version))
             self.findEgg("我是谁？")
 
         if self.ui.lineCustomKeyword.text() == "114514" \
                 and '恶 臭 关 键 词' not in self.configs['discovered_eggs'].keys():
-            QMessageBox.information(self.ui, "要 素 察 觉", "这么臭的关键词真的有替换的必要吗？(半恼)"
-                                                        "\n感觉不如1919810...位数".format(current_version))
+            QMessageBox.information(self.ui, "要 素 察 觉",
+                                    "这么臭的关键词真的有替换的必要吗？(半恼)\n感觉不如1919810...位数".format(
+                                        current_version))
             self.ui.lineCustomKeyword.setText("1919810")
             self.findEgg('恶 臭 关 键 词')
 
@@ -645,10 +661,12 @@ class FDMain:
 
             # 解码失败异常：一般是内容为空或者不合法
             except json.decoder.JSONDecodeError:
-                self.debug("已损坏的模板文件：{0}, 模板文件内容为空或不合法, 跳过当前模板文件".format(display_name), type='error')
+                self.debug("已损坏的模板文件：{0}, 模板文件内容为空或不合法, 跳过当前模板文件".format(display_name),
+                           type='error')
                 return
             except UnicodeDecodeError:
-                self.debug("已损坏的模板文件：{0}, 模板文件编码格式有误, 跳过当前模板文件".format(display_name), type='error')
+                self.debug("已损坏的模板文件：{0}, 模板文件编码格式有误, 跳过当前模板文件".format(display_name),
+                           type='error')
                 return
 
             # 将键全部转换为小写，避免大小写混淆
@@ -668,8 +686,9 @@ class FDMain:
 
             # 如果有缺失的关键键值对
             if not len(missed_keys) == 0:
-                self.debug("已损坏的模板文件：{0}, 缺失如下键值对:{1}, 跳过当前模板文件".format(display_name, missed_keys)
-                           , type='error')
+                self.debug(
+                    "已损坏的模板文件：{0}, 缺失如下键值对:{1}, 跳过当前模板文件".format(display_name, missed_keys)
+                    , type='error')
                 return
 
             # 检测是否已经添加了相同的模板
@@ -692,7 +711,8 @@ class FDMain:
         eggs_list = ""
         for key in self.configs['discovered_eggs'].keys():
             eggs_list += "【{}】 发现时间: {}\n".format(key, self.configs['discovered_eggs'][key])
-        QMessageBox.information(self.ui, "恭喜你已经找到了{}个彩蛋".format(len(self.configs['discovered_eggs'])), eggs_list)
+        QMessageBox.information(self.ui, "恭喜你已经找到了{}个彩蛋".format(len(self.configs['discovered_eggs'])),
+                                eggs_list)
 
     def findEgg(self, title):
         if 'discovered_eggs' not in self.configs.keys():
@@ -752,6 +772,28 @@ class FDMain:
             return
 
 
+class FDMenu:
+    def __init__(self):
+        # 加载菜单UI
+        self.ui = QUiLoader().load('ui\\FormMenu.ui')
+
+        # 设置窗口图标
+        self.ui.setWindowIcon(fdMain.app_icon)
+
+        # 弹窗按钮
+        button_close = QPushButton('关闭菜单')
+
+        # 将按钮添加到弹窗
+        self.ui.buttonBox.addButton(button_close, QDialogButtonBox.AcceptRole)
+
+        # 绑定按钮事件
+        self.ui.buttonOpenTemplateDir.clicked.connect(fdMain.openDir)
+        self.ui.buttonImportTemplate.clicked.connect(fdMain.importTemplate)
+        self.ui.buttonCustomTemplate.clicked.connect(fdMain.customTemplate)
+        self.ui.buttonSyncTemplates.clicked.connect(fdMain.syncTemplates)
+        self.ui.buttonCheckUpdate.clicked.connect(fdMain.checkUpdate)
+
+
 if __name__ == '__main__':
     # 新建 Pyside2 Application
     app = QApplication([])
@@ -768,11 +810,12 @@ if __name__ == '__main__':
     from FDCustom import FDCustom
 
     fdCustom = FDCustom()
+    fdMenu = FDMenu()
 
     # 显示主窗口并导入模板&检查更新
+    fdMain.checkUpdate()
     fdMain.ui.show()
     fdMain.loadTemplates()
-    fdMain.checkUpdate()
 
     # 开始事件循环
     app.exec_()

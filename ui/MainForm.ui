@@ -240,38 +240,12 @@
     <rect>
      <x>10</x>
      <y>60</y>
-     <width>100</width>
+     <width>121</width>
      <height>40</height>
     </rect>
    </property>
    <property name="text">
     <string>刷新模板列表</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="buttonOpenTemplateDir">
-   <property name="geometry">
-    <rect>
-     <x>110</x>
-     <y>60</y>
-     <width>110</width>
-     <height>40</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>打开模板文件夹</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="buttonImportTemplate">
-   <property name="geometry">
-    <rect>
-     <x>220</x>
-     <y>60</y>
-     <width>110</width>
-     <height>40</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>导入自定义模板</string>
    </property>
   </widget>
   <widget class="QListWidget" name="listKeyword">
@@ -284,26 +258,13 @@
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="buttonCustomTemplate">
-   <property name="geometry">
-    <rect>
-     <x>330</x>
-     <y>60</y>
-     <width>110</width>
-     <height>40</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>编辑自定义模板</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="buttonEggs">
    <property name="enabled">
     <bool>true</bool>
    </property>
    <property name="geometry">
     <rect>
-     <x>150</x>
+     <x>450</x>
      <y>450</y>
      <width>131</width>
      <height>51</height>
@@ -327,6 +288,19 @@
    </property>
    <property name="checked">
     <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="buttonMenu">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>450</y>
+     <width>131</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>菜单</string>
    </property>
   </widget>
  </widget>
