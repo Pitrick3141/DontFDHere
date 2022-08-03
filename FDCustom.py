@@ -1,9 +1,15 @@
 import time
 import os
 import json
-from PySide2.QtWidgets import QMessageBox
+
+from PySide2.QtWidgets import QMessageBox, QFileDialog
 from PySide2.QtUiTools import QUiLoader
-from FDMain import fdMain
+
+from FDRescue import rescueMode
+import global_var
+import FDDebug
+
+global fdCustom
 
 
 class FDCustom:
@@ -21,10 +27,15 @@ class FDCustom:
     def __init__(self):
 
         # 加载模板编辑器UI
-        self.ui = QUiLoader().load('ui\\FormCustom.ui')
+        try:
+            self.ui = QUiLoader().load('ui\\FormCustom.ui')
+        except RuntimeError:
+            # 缺少必要文件，启用恢复模式
+            rescueMode()
+            self.ui = QUiLoader().load('ui\\FormCustom.ui')
 
         # 设置窗口图标
-        self.ui.setWindowIcon(fdMain.app_icon)
+        self.ui.setWindowIcon(global_var.app_icon)
 
         # 绑定按钮事件
         self.ui.buttonAdd.clicked.connect(self.addKeyword)
@@ -32,6 +43,7 @@ class FDCustom:
         self.ui.buttonClear.clicked.connect(self.clearTemplate)
         self.ui.buttonSave.clicked.connect(self.saveTemplate)
         self.ui.buttonClose.clicked.connect(self.closeEditor)
+        self.ui.buttonLoad.clicked.connect(self.loadTemplate)
 
         # 绑定编辑框事件
         self.ui.textContent.textChanged.connect(self.contentChange)
@@ -39,6 +51,94 @@ class FDCustom:
 
         # 绑定列表框事件
         self.ui.listKeyword.itemClicked.connect(self.keywordChange)
+
+        FDDebug.debug("自定义模板编辑模块初始化完成", type='success', who=self.__class__.__name__)
+
+    def loadTemplate(self):
+
+        ret = None
+
+        # 弹窗询问是否清空模板
+        if not self.saved:
+            msgbox = QMessageBox()
+            msgbox.setWindowTitle("打开模板")
+            msgbox.setText("你确定打开新的模板吗？当前模板将被清空")
+            msgbox.setInformativeText("警告:该操作不可逆, 你将丢失所有未保存的改动")
+            msgbox.setIcon(QMessageBox.Warning)
+            msgbox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            msgbox.setDefaultButton(QMessageBox.Yes)
+            msgbox.setButtonText(QMessageBox.Yes, "确认清空当前模板")
+            msgbox.setButtonText(QMessageBox.No, "否")
+            ret = msgbox.exec_()
+
+        if ret == QMessageBox.Yes or self.saved:
+            self.clearTemplate(forced=True)
+        else:
+            return
+
+        # 打开选择文件对话框
+        file_dialog = QFileDialog(self.ui)
+        file_dir = file_dialog.getOpenFileName(self.ui, "导入模板文件", os.getcwd(), "模板文件 (*.json)")
+
+        # 若未选择任何文件就关闭对话框
+        if file_dir[0] == "":
+            FDDebug.debug("已取消导入模板文件", type='warn', who=self.__class__.__name__)
+            return
+
+        # 打开选择的文件并导入
+        FDDebug.debug("正在尝试导入模板文件{0}...".format(file_dir[0]), who=self.__class__.__name__)
+
+        with open(file_dir[0], 'rb') as load_json:
+
+            # 模板文件字典
+            data = {}
+            # 缺少的键值对
+            missed_keys = []
+            # 显示的相对路径名称
+            display_name = file_dir[0]
+
+            # 尝试读取模板文件并转换为字典
+            try:
+                original_data = json.load(load_json)
+
+            # 解码失败异常：一般是内容为空或者不合法
+            except json.decoder.JSONDecodeError:
+                FDDebug.debug("已损坏的模板文件：{0}, 模板文件内容为空或不合法, 跳过当前模板文件".format(display_name),
+                              type='error', who=self.__class__.__name__)
+                return
+            except UnicodeDecodeError:
+                FDDebug.debug("已损坏的模板文件：{0}, 模板文件编码格式有误, 跳过当前模板文件".format(display_name),
+                              type='error', who=self.__class__.__name__)
+                return
+
+            # 将键全部转换为小写，避免大小写混淆
+            for key, value in original_data.items():
+                data[key.lower()] = value
+
+            # 检测是否有缺失的必需键值对
+            for checked_key in ['name', 'content', 'rolename', 'roledes']:
+                if checked_key not in data.keys():
+                    missed_keys.append(checked_key)
+
+            # 如果有缺失的关键键值对
+            if not len(missed_keys) == 0:
+                FDDebug.debug(
+                    "已损坏的模板文件：{0}, 缺失如下键值对:{1}, 跳过当前模板文件".format(display_name, missed_keys)
+                    , type='error', who=self.__class__.__name__)
+                return
+
+            self.ui.lineName.setText(data.get('name'))
+            self.name = data.get('name')
+            self.ui.textContent.setText(data.get('content'))
+            self.content = data.get('content')
+            role = data.get('rolename')
+            des = data.get('roledes')
+            for i in range(0, len(role)):
+                self.keywords.append(role[i])
+                self.descriptions.append(des[i])
+                self.ui.listKeyword.addItem("{0}({1})".format(role[i], des[i]))
+
+            FDDebug.debug("已载入模板文件: " + data.get('name'), type='success', who=self.__class__.__name__)
 
     def nameChange(self):
 
@@ -95,6 +195,10 @@ class FDCustom:
                 self.ui.listKeyword.takeItem(index)
                 self.ui.listKeyword.insertItem(index, "{0}({1})".format(self.ui.lineKeyword.text(),
                                                                         self.ui.lineDescription.text()))
+
+            FDDebug.debug("已添加关键词{}({})".format(self.ui.lineKeyword.text(), self.ui.lineDescription.text()),
+                          type='success', who=self.__class__.__name__)
+
             # 清空关键词和描述输入框
             self.ui.lineKeyword.clear()
             self.ui.lineDescription.clear()
@@ -116,6 +220,8 @@ class FDCustom:
             QMessageBox.warning(self.ui, "未选择任何关键词", "当前未选择任何关键词, 无法移除", QMessageBox.Ok)
             return
 
+        FDDebug.debug("移除了关键词{}({})".format(self.ui.lineKeyword.text(), self.ui.lineDescription.text()),
+                      type='success', who=self.__class__.__name__)
         # 从列表和列表框中移除关键词
         self.ui.listKeyword.takeItem(index)
         del self.keywords[index]
@@ -128,23 +234,31 @@ class FDCustom:
         # 标记为未保存
         self.changeOccur()
 
-    def clearTemplate(self):
+    def clearTemplate(self, **kwargs):
 
-        # 弹窗确认是否清空模板
-        msgbox = QMessageBox()
-        msgbox.setWindowTitle("清空当前模板")
-        msgbox.setText("你确定要清空当前模板吗？")
-        msgbox.setIcon(QMessageBox.Question)
-        msgbox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        msgbox.setDefaultButton(QMessageBox.Yes)
-        msgbox.setButtonText(QMessageBox.Yes, "是")
-        msgbox.setButtonText(QMessageBox.No, "否")
-        ret = msgbox.exec_()
+        forced = False
 
-        if ret == QMessageBox.Yes:
+        if kwargs.get('forced') is True:
+            forced = True
+
+        ret = None
+
+        if not forced:
+            # 弹窗确认是否清空模板
+            msgbox = QMessageBox()
+            msgbox.setWindowTitle("清空当前模板")
+            msgbox.setText("你确定要清空当前模板吗？")
+            msgbox.setIcon(QMessageBox.Question)
+            msgbox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            msgbox.setDefaultButton(QMessageBox.Yes)
+            msgbox.setButtonText(QMessageBox.Yes, "是")
+            msgbox.setButtonText(QMessageBox.No, "否")
+            ret = msgbox.exec_()
+
+        if ret == QMessageBox.Yes or forced:
 
             # 检测是否已经保存
-            if not self.saved:
+            if not self.saved and not forced:
                 # 再次确认
                 msgbox = QMessageBox()
                 msgbox.setWindowTitle("您有未保存的改动")
@@ -161,6 +275,11 @@ class FDCustom:
                     return
 
             # 清空模板
+            if not forced:
+                FDDebug.debug("已清空模板", type='success', who=self.__class__.__name__)
+            else:
+                FDDebug.debug("已清空模板以打开新模板", type='success', who=self.__class__.__name__)
+
             self.ui.textContent.clear()
             self.content = ""
             self.ui.lineKeyword.clear()
@@ -175,6 +294,7 @@ class FDCustom:
             self.ui.labelUnsaved.setVisible(False)
 
     def saveTemplate(self):
+        save_name = ""
 
         # 检测模板是否为空
         if self.content == "":
@@ -191,14 +311,20 @@ class FDCustom:
             msgbox = QMessageBox()
             msgbox.setWindowTitle("同名模板已存在")
             msgbox.setText("你确定要覆盖当前模板吗？")
-            msgbox.setDetailedText("当前同名模板:{0}\\FDTemplates\\{1}.json".format(os.getcwd(), self.name))
+            msgbox.setInformativeText("当前同名模板:{0}\\FDTemplates\\{1}.json".format(os.getcwd(), self.name))
             msgbox.setIcon(QMessageBox.Warning)
-            msgbox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            msgbox.setStandardButtons(QMessageBox.Yes | QMessageBox.Ok | QMessageBox.No)
             msgbox.setDefaultButton(QMessageBox.Yes)
-            msgbox.setButtonText(QMessageBox.Yes, "是")
-            msgbox.setButtonText(QMessageBox.No, "否")
+            msgbox.setButtonText(QMessageBox.Yes, "覆盖保存")
+            msgbox.setButtonText(QMessageBox.Ok, "重命名保存")
+            msgbox.setButtonText(QMessageBox.No, "取消保存")
             ret = msgbox.exec_()
-            if ret == QMessageBox.No:
+            if ret == QMessageBox.Ok:
+                save_name = "FDTemplates\\{0}_自定义于_{1}.json".format(self.name, time.strftime(
+                    "%Y_%m_%d_%H_%M_%S", time.localtime()))
+            elif ret == QMessageBox.Yes:
+                save_name = "FDTemplates\\{0}.json".format(self.name)
+            else:
                 return
 
         # 处理json字典
@@ -206,7 +332,7 @@ class FDCustom:
                      'RoleDes': self.descriptions}
 
         # 保存json文件
-        with open("FDTemplates\\{0}.json".format(self.name), "w") as f:
+        with open(save_name, "w") as f:
             json.dump(json_dump, f)
 
         # 标记已经保存
@@ -215,8 +341,10 @@ class FDCustom:
 
         QMessageBox.information(self.ui,
                                 "保存成功",
-                                "模板文件已保存至{0}\\FDTemplates\\{1}.json".format(os.getcwd(), self.name),
+                                "模板文件已保存至{0}\\{1}".format(os.getcwd(), save_name),
                                 QMessageBox.Ok)
+        FDDebug.debug("模板文件已保存至{0}\\{1}".format(os.getcwd(), save_name),
+                      type='success', who=self.__class__.__name__)
 
     def closeEditor(self):
         # 弹窗确认是否关闭
@@ -232,6 +360,7 @@ class FDCustom:
         msgbox.setButtonText(QMessageBox.No, "否")
         ret = msgbox.exec_()
         if ret == QMessageBox.Yes:
+            FDDebug.debug("关闭了自定义模板编辑器", type='success', who=self.__class__.__name__)
             # 关闭当前窗口
             self.ui.close()
 
@@ -240,4 +369,19 @@ class FDCustom:
         # 模板发生改动
         self.saved = False
         self.ui.labelUnsaved.setVisible(True)
-        self.ui.labelUnsaved.setText("<span style=\" font-size:10pt; font-weight:600; color:Red;\">您有未保存的改动!</span>")
+        self.ui.labelUnsaved.setText(
+            "<span style=\" font-size:10pt; font-weight:600; color:Red;\">您有未保存的改动!</span>")
+
+
+def init():
+    global fdCustom
+    fdCustom = FDCustom()
+
+
+def display():
+    FDDebug.debug("已打开自定义模板编辑器示界面", type='success', who='FDCustom')
+    fdCustom.ui.show()
+
+
+def get_saved():
+    return fdCustom.saved

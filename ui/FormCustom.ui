@@ -33,9 +33,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>50</y>
+     <y>60</y>
      <width>261</width>
-     <height>291</height>
+     <height>281</height>
     </rect>
    </property>
   </widget>
@@ -43,7 +43,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>30</y>
+     <y>40</y>
      <width>91</width>
      <height>16</height>
     </rect>
@@ -55,7 +55,7 @@
   <widget class="QLineEdit" name="lineKeyword">
    <property name="geometry">
     <rect>
-     <x>360</x>
+     <x>430</x>
      <y>10</y>
      <width>261</width>
      <height>20</height>
@@ -65,7 +65,7 @@
   <widget class="QLineEdit" name="lineDescription">
    <property name="geometry">
     <rect>
-     <x>360</x>
+     <x>430</x>
      <y>40</y>
      <width>261</width>
      <height>20</height>
@@ -75,7 +75,7 @@
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>280</x>
+     <x>360</x>
      <y>10</y>
      <width>81</width>
      <height>16</height>
@@ -88,7 +88,7 @@
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
-     <x>280</x>
+     <x>360</x>
      <y>40</y>
      <width>81</width>
      <height>16</height>
@@ -217,7 +217,7 @@
     <rect>
      <x>70</x>
      <y>10</y>
-     <width>201</width>
+     <width>161</width>
      <height>20</height>
     </rect>
    </property>
@@ -233,6 +233,19 @@
    </property>
    <property name="text">
     <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="buttonLoad">
+   <property name="geometry">
+    <rect>
+     <x>240</x>
+     <y>10</y>
+     <width>111</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>打开模板</string>
    </property>
   </widget>
  </widget>
