@@ -5,7 +5,7 @@ import json
 from PySide2.QtWidgets import QMessageBox, QFileDialog
 from PySide2.QtUiTools import QUiLoader
 
-from FDRescue import rescueMode
+import FDRescue
 import global_var
 import FDDebug
 
@@ -31,7 +31,7 @@ class FDCustom:
             self.ui = QUiLoader().load('ui\\FormCustom.ui')
         except RuntimeError:
             # 缺少必要文件，启用恢复模式
-            rescueMode()
+            FDRescue.rescueMode()
             self.ui = QUiLoader().load('ui\\FormCustom.ui')
 
         # 设置窗口图标

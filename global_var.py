@@ -1,4 +1,5 @@
 from PySide2.QtGui import QIcon
+
 # 当前版本号，用于检查更新
 
 current_version = 'v1.2.0'

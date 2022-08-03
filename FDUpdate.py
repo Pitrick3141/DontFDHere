@@ -2,11 +2,13 @@ import os
 import json
 import requests
 import webbrowser
+
 from PySide2.QtWidgets import QMessageBox, QPushButton, QDialogButtonBox
 from PySide2.QtUiTools import QUiLoader
+
 import FDDebug
 import global_var
-from FDRescue import rescueMode
+import FDRescue
 
 global fdUpdate
 
@@ -20,7 +22,7 @@ class FDUpdate:
             self.ui = QUiLoader().load('ui\\FormUpdate.ui')
         except RuntimeError:
             # 缺少必要文件，启用恢复模式
-            rescueMode()
+            FDRescue.rescueMode()
             self.ui = QUiLoader().load('ui\\FormUpdate.ui')
 
         # 设置窗口图标

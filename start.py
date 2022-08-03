@@ -23,7 +23,7 @@ FDMain.init()
 
 # 显示主窗口并导入模板&检查更新
 FDMain.display()
-FDUtility.checkUpdate(False)
+FDUtility.checkUpdate()
 FDMain.loadTemplates()
 
 # 开始事件循环

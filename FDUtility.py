@@ -6,7 +6,7 @@ import requests
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QPushButton, QDialogButtonBox, QMessageBox, QFileDialog
 
-from FDRescue import rescueMode
+import FDRescue
 import global_var
 import FDDebug
 import FDUpdate
@@ -23,11 +23,14 @@ class FDMenu:
             self.ui = QUiLoader().load('ui\\FormMenu.ui')
         except RuntimeError:
             # 缺少必要文件，启用恢复模式
-            rescueMode()
+            FDRescue.rescueMode()
             self.ui = QUiLoader().load('ui\\FormMenu.ui')
 
         # 设置窗口图标
         self.ui.setWindowIcon(global_var.app_icon)
+
+        # 是否是启动第一次检查更新
+        self.first_check = True
 
         # 弹窗按钮
         button_close = QPushButton('关闭菜单')
@@ -43,7 +46,7 @@ class FDMenu:
         self.ui.buttonCheckUpdate.clicked.connect(self.checkUpdate)
         self.ui.buttonDebug.clicked.connect(self.showDebug)
 
-    def checkUpdate(self, show_latest=True):
+    def checkUpdate(self):
 
         # 检查应用更新
         latest = True
@@ -120,8 +123,10 @@ class FDMenu:
 
         else:
             FDDebug.debug("当前已经是最新版本", type='success', who=self.__class__.__name__)
-            if show_latest:
+            if not self.first_check:
                 QMessageBox.information(self.ui, "检查更新完成", "当前已经是最新版本: " + global_var.current_version)
+
+        self.first_check = False
 
     def syncTemplates(self):
         # 同步计数
@@ -393,6 +398,6 @@ def syncTemplates():
     return
 
 
-def checkUpdate(show_latest=True):
-    fdMenu.checkUpdate(show_latest)
+def checkUpdate():
+    fdMenu.checkUpdate()
     return

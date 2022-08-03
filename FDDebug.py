@@ -1,7 +1,8 @@
 import time
 
 from PySide2.QtUiTools import QUiLoader
-from FDRescue import rescueMode
+
+import FDRescue
 
 global fdDebug
 
@@ -14,7 +15,7 @@ class FDDebug:
             self.ui = QUiLoader().load('ui\\FormDebug.ui')
         except RuntimeError:
             # 缺少必要文件，启用恢复模式
-            rescueMode()
+            FDRescue.rescueMode()
             self.ui = QUiLoader().load('ui\\FormDebug.ui')
         self.debug("调试输出模块初始化完成", type='success', who=self.__class__.__name__)
 
@@ -43,6 +44,8 @@ class FDDebug:
             info_from = '@功能菜单'
         elif kwargs.get('who') == 'FDDebug':
             info_from = '@调试输出'
+        elif kwargs.get('who') == 'FDRescue':
+            info_from = '@恢复模式'
 
         # 错误信息
         if kwargs.get('type') == 'error':

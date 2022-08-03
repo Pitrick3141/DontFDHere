@@ -9,7 +9,7 @@ import hashlib
 from PySide2.QtWidgets import QMessageBox
 from PySide2.QtUiTools import QUiLoader
 
-from FDRescue import rescueMode
+import FDRescue
 import global_var
 import FDDebug
 import FDUtility
@@ -38,7 +38,7 @@ class FDMain:
             self.ui = QUiLoader().load('ui\\MainForm.ui')
         except RuntimeError:
             # 缺少必要文件，启用恢复模式
-            rescueMode()
+            FDRescue.rescueMode()
             self.ui = QUiLoader().load('ui\\MainForm.ui')
 
         # 设置窗口图标
